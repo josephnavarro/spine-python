@@ -1,6 +1,5 @@
 #! usr/bin/env python3
-from .CurveTimeline import CurveTimeline
-from .. import binarySearch
+from .CurveTimeline import CurveTimeline, binarySearch
 
 
 class RotateTimeline(CurveTimeline):

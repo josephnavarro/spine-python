@@ -8,7 +8,7 @@ class Animation:
         "duration",
     ]
 
-    def __init__(self, name, timelines, duration):
+    def __init__(self, name: str, timelines, duration):
         if not timelines:
             raise Exception('Timelines cannot be None.')
         self.name = name

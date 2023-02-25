@@ -1,6 +1,5 @@
 #! usr/bin/env python3
-from .Timeline import Timeline
-from .. import binarySearch
+from .Timeline import Timeline, binarySearch
 
 
 class AttachmentTimeline(Timeline):

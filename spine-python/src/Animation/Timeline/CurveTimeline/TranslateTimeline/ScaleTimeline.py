@@ -1,5 +1,5 @@
 #! usr/bin/env python3
-from .TranslateTimeline import TranslateTimeline
+from .TranslateTimeline import TranslateTimeline, binarySearch
 
 
 class ScaleTimeline(TranslateTimeline):

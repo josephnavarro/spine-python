@@ -1,4 +1,5 @@
 #! usr/bin/env python3
+from ..Utility import binarySearch
 
 class Timeline:
     __slots__ = []
