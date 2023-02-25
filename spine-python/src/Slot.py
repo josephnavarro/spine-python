@@ -1,7 +1,7 @@
 #! usr/bin/env python3
-from Attachment import Attachment
-from Skeleton import Skeleton
-from SlotData import SlotData
+from .Attachment import Attachment
+from .Skeleton import Skeleton
+from .SlotData import SlotData
 
 
 class Slot:

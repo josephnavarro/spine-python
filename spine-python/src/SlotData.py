@@ -1,5 +1,5 @@
 #! usr/bin/env python3
-from BoneData import BoneData
+from .BoneData import BoneData
 
 
 class SlotData:
