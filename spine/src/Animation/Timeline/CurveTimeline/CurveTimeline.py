@@ -49,7 +49,8 @@ class CurveTimeline(Timeline):
 
     def getCurvePercent(self, keyframeIndex: int, percent) -> float:
         curveIndex: int = keyframeIndex * self.FRAME_SPACING
-        # curveIndex: int = keyframeIndex * 6
+        # TODO: Inheritors overriding this to anything other than 6 cause it to break!
+        curveIndex: int = keyframeIndex * 6
 
         dfx: float = self.curves[curveIndex]
         if dfx == self.LINEAR:
