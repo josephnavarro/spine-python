@@ -44,28 +44,39 @@ class Skeleton(spine.Skeleton):
             if attachment is not None:
                 texture: (pygame.Surface | None) = attachment.texture.copy()
                 if texture is not None:
-                    x = slot.bone.worldX + slot.attachment.x * slot.bone.m00 + slot.attachment.y * slot.bone.m01
-                    y = -(slot.bone.worldY + slot.attachment.x * slot.bone.m10 + slot.attachment.y * slot.bone.m11)
-                    rotation = -(slot.bone.worldRotation + slot.attachment.rotation)
-                    xScale = slot.bone.worldScaleX + slot.attachment.scaleX - 1
-                    yScale = slot.bone.worldScaleY + slot.attachment.scaleY - 1
+                    attachX = attachment.x
+                    attachY = attachment.y
+                    attachScaleX = attachment.scaleX
+                    attachScaleY = attachment.scaleY
+                    attachRotation = attachment.rotation
+                    bone = slot.bone
+                    worldX = bone.worldX
+                    worldY = bone.worldY
+                    m00 = bone.m00
+                    m01 = bone.m01
+                    m10 = bone.m10
+                    m11 = bone.m11
+                    worldRotation = bone.worldRotation
+                    worldScaleX = bone.worldScaleX
+                    worldScaleY = bone.worldScaleY
 
-                    x += self.x
-                    y += self.y
-
+                    rotation: float = -(worldRotation + attachRotation)
+                    xScale: float = worldScaleX + attachScaleX - 1
                     if self.flipX:
                         xScale = -xScale
                         rotation = -rotation
+
+                    yScale: float = worldScaleY + attachScaleY - 1
                     if self.flipY:
                         yScale = -yScale
                         rotation = -rotation
 
-                    flipX = False
-                    flipY = False
-
+                    flipX: bool = False
                     if xScale < 0:
                         flipX = True
                         xScale = math.fabs(xScale)
+
+                    flipY: bool = False
                     if yScale < 0:
                         flipY = True
                         yScale = math.fabs(yScale)
@@ -78,8 +89,8 @@ class Skeleton(spine.Skeleton):
                     texture = _rotozoom(texture, -rotation, 1)
 
                     # Center image
-                    x -= texture.get_width() * 0.5
-                    y -= texture.get_height() * 0.5
+                    x: float = worldX + (attachX * m00) + (attachY * m01) + self.x - texture.get_width() * 0.5
+                    y: float = -(worldY + (attachX * m10) + (attachY * m11)) + self.y - texture.get_height() * 0.5
                     screen.blit(texture, (x, y))
 
         if self.debug:
