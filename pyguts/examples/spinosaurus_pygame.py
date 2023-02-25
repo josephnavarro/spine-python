@@ -21,7 +21,7 @@ if __name__ == '__main__':
     skeletonData = skeletonJson.readSkeletonDataFile('./data/spinosaurus.json')
     animation = skeletonData.findAnimation('animation')
 
-    skeleton = spine.Skeleton(skeletonData=skeletonData)
+    skeleton = spine.Skeleton(skeletonData=skeletonData, debug=False)
     skeleton.debug = False
 
     skeleton.setToBindPose()

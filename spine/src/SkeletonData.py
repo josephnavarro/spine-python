@@ -46,10 +46,10 @@ class SkeletonData:
         return -1
 
     def findSkin(self, skinName: str) -> (Skin | None):
-        for i, skin in enumerate(self.skins):
-            if skin.name == skinName:
-                return skin
-        return None
+        try:
+            return tuple(filter(lambda _: _.name == skinName, self.skins))[0]
+        except IndexError:
+            return None
 
     def findAnimation(self, animationName: str) -> (Animation | None):
         for i, animation in enumerate(self.animations):

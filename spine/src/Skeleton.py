@@ -65,29 +65,32 @@ class Skeleton:
             self.drawOrder.append(slot)
 
     def updateWorldTransform(self) -> None:
-        for i, bone in enumerate(self.bones):
-            self.bones[i].updateWorldTransform(self.flipX, self.flipY)
+        for bone in self.bones:
+            bone.updateWorldTransform(self.flipX, self.flipY)
 
     def setToBindPose(self) -> None:
         self.setBonesToBindPose()
         self.setSlotsToBindPose()
 
     def setBonesToBindPose(self) -> None:
-        for i, bone in enumerate(self.bones):  # type: int, Bone
-            self.bones[i].setToBindPose()
+        for bone in self.bones:  # type: Bone
+            bone.setToBindPose()
 
     def setSlotsToBindPose(self) -> None:
         for i, bone in enumerate(self.slots):
             self.slots[i].setToBindPoseWithIndex(i)
 
     def getRootBone(self) -> (Bone | None):
-        if len(self.bones):
+        try:
             return self.bones[0]
-        return None
+        except IndexError:
+            return None
 
     def setRootBone(self, bone: Bone) -> None:
-        if len(self.bones):
+        try:
             self.bones[0] = bone
+        except IndexError:
+            pass
 
     def findBone(self, boneName) -> (Bone | None):
         for i, bone in enumerate(self.bones):
@@ -113,9 +116,9 @@ class Skeleton:
                 return i
         return -1
 
-    def setSkin(self, skinName) -> None:
+    def setSkin(self, skinName: str) -> None:
         skin = self.data.findSkin(skinName)
-        if not skin:
+        if skin is None:
             raise Exception(f"Skin not found: {skinName}")
         self.setSkinToSkin(skin)
 
