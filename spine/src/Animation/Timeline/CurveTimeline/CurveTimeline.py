@@ -49,7 +49,7 @@ class CurveTimeline(Timeline):
 
     def getCurvePercent(self, keyframeIndex: int, percent) -> float:
         curveIndex: int = keyframeIndex * self.FRAME_SPACING
-        curveIndex: int = keyframeIndex * 6
+        # curveIndex: int = keyframeIndex * 6
 
         dfx: float = self.curves[curveIndex]
         if dfx == self.LINEAR:
@@ -66,20 +66,18 @@ class CurveTimeline(Timeline):
             y: float = dfy
             i: float = self.BEZIER_SEGMENTS - 2
 
-            while True:
+            while i != 0:
                 if x >= percent:
                     lastX: float = x - dfx
                     lastY: float = y - dfy
                     return lastY + (y - lastY) * (percent - lastX) / (x - lastX)
-                elif i == 0:
-                    break
-
-                i -= 1
-                dfx += ddfx
-                dfy += ddfy
-                ddfx += dddfx
-                ddfy += dddfy
-                x += dfx
-                y += dfy
+                else:
+                    i -= 1
+                    dfx += ddfx
+                    dfy += ddfy
+                    ddfx += dddfx
+                    ddfy += dddfy
+                    x += dfx
+                    y += dfy
 
             return y + (1 - y) * (percent - x) / (1 - x)  # Last point is 1,1
