@@ -1,13 +1,12 @@
+#! usr/bin/env python3
 import json
 import os
 import sys
-
 import SkeletonData
 import BoneData
 import SlotData
 import Skin
 import AttachmentLoader
-
 import Animation
 
 
@@ -28,9 +27,8 @@ def readCurve(timeline, keyframeIndex, valueMap):
     return timeline
 
 
-class SkeletonJson(object):
+class SkeletonJson:
     def __init__(self, attachmentLoader):
-        super(SkeletonJson, self).__init__()
         self.attachmentLoader = attachmentLoader
         self.scale = 1.0
         self.flipY = False            

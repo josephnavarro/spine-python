@@ -1,12 +1,14 @@
+#! usr/bin/env python3
 import Enum
 
-AttachmentType = Enum.enum(region=0, 
-                           regionSequence=1)
+AttachmentType = Enum.enum(
+    region=0,
+    regionSequence=1,
+)
 
-class AttachmentLoader(object):
-    def __init__(self):
-        super(AttachmentLoader, self).__init__()
 
-    def newAttachment(type, name):
+class AttachmentLoader:
+    __slots__ = []
+
+    def newAttachment(self, type, name):
         pass
-

@@ -1,17 +1,35 @@
+#! usr/bin/env python3
 from Bone import Bone
+from BoneData import BoneData
 from Slot import Slot
+from SkeletonData import SkeletonData
 
-class Skeleton(object):
-    def __init__(self, skeletonData):
-        super(Skeleton, self).__init__()
-        self.data = skeletonData
+
+class Skeleton:
+    __slots__ = [
+        "data",
+        "skin",
+        "r",
+        "g",
+        "b",
+        "a",
+        "time",
+        "bones",
+        "slots",
+        "drawOrder",
+        "flipX",
+        "flipY",
+    ]
+
+    def __init__(self, skeletonData: SkeletonData):
+        self.data: SkeletonData = skeletonData
         self.skin = None
         self.r = 1.0
         self.g = 1.0
         self.b = 1.0
         self.a = 1.0
         self.time = 0.0
-        self.bones = []
+        self.bones: list[Bone | None] = []
         self.slots = []
         self.drawOrder = []
         self.flipX = False
@@ -20,7 +38,7 @@ class Skeleton(object):
         if not self.data:
             raise Exception('skeletonData can not be null.')
 
-        boneCount = len(self.data.bones)
+        boneCount: int = len(self.data.bones)
         self.bones = [None] * boneCount
         for i in range(boneCount):
             boneData = self.data.bones[i]
@@ -44,52 +62,43 @@ class Skeleton(object):
             slot = Slot(slotData=slotData, skeleton=self, bone=bone)
             self.slots[i] = slot
             self.drawOrder.append(slot)
-    
-    
-    def updateWorldTransform(self):
+
+    def updateWorldTransform(self) -> None:
         for i, bone in enumerate(self.bones):
             self.bones[i].updateWorldTransform(self.flipX, self.flipY)
 
-    
-    def setToBindPose(self):
+    def setToBindPose(self) -> None:
         self.setBonesToBindPose()
         self.setSlotsToBindPose()
 
-    
-    def setBonesToBindPose(self):
-        for i, bone in enumerate(self.bones):
+    def setBonesToBindPose(self) -> None:
+        for i, bone in enumerate(self.bones):  # type: int, Bone
             self.bones[i].setToBindPose()
 
-    
     def setSlotsToBindPose(self):
         for i, bone in enumerate(self.slots):
             self.slots[i].setToBindPoseWithIndex(i)
 
-
-    def getRootBone(self):
+    def getRootBone(self) -> (Bone | None):
         if len(self.bones):
             return self.bones[0]
         return None
 
-
-    def setRootBone(self, bone):
+    def setRootBone(self, bone: Bone) -> None:
         if len(self.bones):
             self.bones[0] = bone
-    
-    
-    def findBone(self, boneName):
+
+    def findBone(self, boneName) -> (Bone | None):
         for i, bone in enumerate(self.bones):
             if self.data.bones[i].name == boneName:
                 return self.bones[i]
         return None
 
-    
-    def findBoneIndex(self, boneName):
+    def findBoneIndex(self, boneName) -> int:
         for i, bone in enumerate(self.bones):
             if self.data.bones[i].name == boneName:
                 return i
         return -1
-
 
     def findSlot(self, slotName):
         for i, slot in enumerate(self.slots):
@@ -97,13 +106,11 @@ class Skeleton(object):
                 return self.slots[i]
         return None
 
-
     def findSlotIndex(self, slotName):
         for i, slot in enumerate(self.slots):
             if self.data.slots[i].name == slotName:
                 return i
         return -1
-
 
     def setSkin(self, skinName):
         skin = self.data.findSkin(skinName)
@@ -111,16 +118,13 @@ class Skeleton(object):
             raise Exception('Skin not found: %s' % skinName)
         self.setSkinToSkin(skin)
 
-
     def setSkinToSkin(self, newSkin):
         if self.skin and newSkin:
             newSkin.attachAll(self, self.skin)
         self.skin = newSkin
 
-
     def getAttachmentByName(self, slotName, attachmentName):
         return self.getAttachmentByIndex(self.data.findSlotIndex(slotName), attachmentName)
-
 
     def getAttachmentByIndex(self, slotIndex, attachmentName):
         if self.data.defaultSkin:
@@ -131,7 +135,6 @@ class Skeleton(object):
             return self.skin.getAttachment(slotIndex, attachmentName)
         return None
 
-
     def setAttachment(self, slotName, attachmentName):
         for i in range(len(self.slots)):
             if self.slots[i].data.name == slotName:
@@ -139,8 +142,5 @@ class Skeleton(object):
                 return
         raise Exception('Slot not found: %s' % slotName)
 
-
-    def update(self, delta):
+    def update(self, delta: float) -> None:
         self.time += delta
-
-    

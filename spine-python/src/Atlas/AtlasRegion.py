@@ -1,6 +1,26 @@
-class BaseAtlasRegion(object):
+#! usr/bin/env python3
+
+class BaseAtlasRegion:
+    __slots__ = [
+        "name",
+        "x",
+        "y",
+        "width",
+        "height",
+        "width",
+        "offsetX",
+        "offsetY",
+        "originalWidth",
+        "originalHeight",
+        "index",
+        "rotate",
+        "flip",
+        "splits",
+        "pads",
+    ]
+
     def __init__(self):
-        self.name = NOne
+        self.name = None
         self.x = 0
         self.y = 0
         self.width = 0
