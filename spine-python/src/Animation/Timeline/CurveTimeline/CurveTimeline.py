@@ -1,5 +1,5 @@
 #! usr/bin/env python3
-from .. import Timeline, binarySearch
+from .. import Timeline
 
 
 class CurveTimeline(Timeline):

@@ -1,10 +1,10 @@
 #! usr/bin/env python3
 import math
+from .Attachment import Attachment
+from .Bone import Bone
 
-import Attachment
 
-
-class RegionAttachment(Attachment.Attachment):
+class RegionAttachment(Attachment):
     __slots__ = [
         "x",
         "y",
@@ -67,5 +67,5 @@ class RegionAttachment(Attachment.Attachment):
         self.offset[6] = localX2Cos - localYSin
         self.offset[7] = localYCos + localX2Sin
 
-    def updateWorldVerticies(self, bone):
+    def updateWorldVerticies(self, bone: Bone):
         pass

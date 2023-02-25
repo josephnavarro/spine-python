@@ -1,8 +1,9 @@
 #! usr/bin/env python3
-from Bone import Bone
-from BoneData import BoneData
-from Slot import Slot
-from SkeletonData import SkeletonData
+from .Attachment import Attachment
+from .Bone import Bone
+from .Slot import Slot
+from .SkeletonData import SkeletonData
+from .Skin import Skin
 
 
 class Skeleton:
@@ -23,23 +24,23 @@ class Skeleton:
 
     def __init__(self, skeletonData: SkeletonData):
         self.data: SkeletonData = skeletonData
-        self.skin = None
-        self.r = 1.0
-        self.g = 1.0
-        self.b = 1.0
-        self.a = 1.0
-        self.time = 0.0
+        self.skin: (Skin | None) = None
+        self.r: float = 1.0
+        self.g: float = 1.0
+        self.b: float = 1.0
+        self.a: float = 1.0
+        self.time: float = 0.0
         self.bones: list[Bone | None] = []
-        self.slots = []
+        self.slots: list[Slot | None] = []
         self.drawOrder = []
-        self.flipX = False
-        self.flipY = False
+        self.flipX: bool = False
+        self.flipY: bool = False
 
         if not self.data:
             raise Exception('skeletonData can not be null.')
 
         boneCount: int = len(self.data.bones)
-        self.bones = [None] * boneCount
+        self.bones: list[Bone | None] = [None] * boneCount
         for i in range(boneCount):
             boneData = self.data.bones[i]
             bone = Bone(data=boneData)
@@ -51,7 +52,7 @@ class Skeleton:
             self.bones[i] = bone
 
         slotCount = len(self.data.slots)
-        self.slots = [None] * slotCount
+        self.slots: list[Slot | None] = [None] * slotCount
         for i in range(slotCount):
             slotData = self.data.slots[i]
             bone = None
@@ -75,7 +76,7 @@ class Skeleton:
         for i, bone in enumerate(self.bones):  # type: int, Bone
             self.bones[i].setToBindPose()
 
-    def setSlotsToBindPose(self):
+    def setSlotsToBindPose(self) -> None:
         for i, bone in enumerate(self.slots):
             self.slots[i].setToBindPoseWithIndex(i)
 
@@ -100,47 +101,51 @@ class Skeleton:
                 return i
         return -1
 
-    def findSlot(self, slotName):
+    def findSlot(self, slotName) -> (Slot | None):
         for i, slot in enumerate(self.slots):
             if self.data.slots[i].name == slotName:
                 return self.slots[i]
         return None
 
-    def findSlotIndex(self, slotName):
+    def findSlotIndex(self, slotName) -> int:
         for i, slot in enumerate(self.slots):
             if self.data.slots[i].name == slotName:
                 return i
         return -1
 
-    def setSkin(self, skinName):
+    def setSkin(self, skinName) -> None:
         skin = self.data.findSkin(skinName)
         if not skin:
-            raise Exception('Skin not found: %s' % skinName)
+            raise Exception(f"Skin not found: {skinName}")
         self.setSkinToSkin(skin)
 
-    def setSkinToSkin(self, newSkin):
+    def setSkinToSkin(self, newSkin) -> None:
         if self.skin and newSkin:
             newSkin.attachAll(self, self.skin)
         self.skin = newSkin
 
-    def getAttachmentByName(self, slotName, attachmentName):
-        return self.getAttachmentByIndex(self.data.findSlotIndex(slotName), attachmentName)
+    def getAttachmentByName(self, slotName, attachmentName) -> (Attachment | None):
+        return self.getAttachmentByIndex(
+            self.data.findSlotIndex(slotName),
+            attachmentName
+        )
 
-    def getAttachmentByIndex(self, slotIndex, attachmentName):
+    def getAttachmentByIndex(self, slotIndex, attachmentName) -> (Attachment | None):
         if self.data.defaultSkin:
             attachment = self.data.defaultSkin.getAttachment(slotIndex, attachmentName)
-            if attachment:
+            if attachment is not None:
                 return attachment
-        if self.skin:
+        if self.skin is not None:
             return self.skin.getAttachment(slotIndex, attachmentName)
         return None
 
-    def setAttachment(self, slotName, attachmentName):
+    def setAttachment(self, slotName: str, attachmentName: str) -> None:
         for i in range(len(self.slots)):
-            if self.slots[i].data.name == slotName:
-                self.slots[i].setAttachment(self.getAttachmentByIndex(i, attachmentName))
+            _slot: Slot = self.slots[i]
+            if _slot.data.name == slotName:
+                _slot.setAttachment(self.getAttachmentByIndex(i, attachmentName))
                 return
-        raise Exception('Slot not found: %s' % slotName)
+        raise Exception(f"Slot not found: {slotName}")
 
     def update(self, delta: float) -> None:
         self.time += delta

@@ -13,8 +13,8 @@ class BoneData:
         "flipY",
     ]
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, name: str):
+        self.name: str = name
         self.parent = None
         self.length: float = 0.0
         self.x: float = 0.0

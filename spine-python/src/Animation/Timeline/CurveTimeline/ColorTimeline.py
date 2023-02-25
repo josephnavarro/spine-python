@@ -1,5 +1,6 @@
 #! usr/bin/env python3
-from .. import CurveTimeline, binarySearch
+from .CurveTimeline import CurveTimeline
+from .. import binarySearch
 
 
 class ColorTimeline(CurveTimeline):
@@ -13,7 +14,7 @@ class ColorTimeline(CurveTimeline):
         "slotIndex",
     ]
 
-    def __init__(self, keyframeCount):
+    def __init__(self, keyframeCount: int):
         super(ColorTimeline, self).__init__(keyframeCount)
         self.LAST_FRAME_TIME = -5
         self.FRAME_SPACING = -self.LAST_FRAME_TIME

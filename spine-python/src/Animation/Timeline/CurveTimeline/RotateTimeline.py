@@ -1,5 +1,6 @@
 #! usr/bin/env python3
-from .. import CurveTimeline, binarySearch
+from .CurveTimeline import CurveTimeline
+from .. import binarySearch
 
 
 class RotateTimeline(CurveTimeline):
@@ -10,7 +11,7 @@ class RotateTimeline(CurveTimeline):
         "boneIndex",
     ]
 
-    def __init__(self, keyframeCount):
+    def __init__(self, keyframeCount: int):
         super(RotateTimeline, self).__init__(keyframeCount)
         self.LAST_FRAME_TIME: int = -2
         self.FRAME_SPACING: int = -self.LAST_FRAME_TIME

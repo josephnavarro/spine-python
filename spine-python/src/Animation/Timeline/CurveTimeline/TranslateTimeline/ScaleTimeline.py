@@ -1,5 +1,5 @@
 #! usr/bin/env python3
-from .. import TranslateTimeline, binarySearch
+from .TranslateTimeline import TranslateTimeline
 
 
 class ScaleTimeline(TranslateTimeline):
@@ -10,7 +10,7 @@ class ScaleTimeline(TranslateTimeline):
         "FRAME_Y",
     ]
 
-    def __init__(self, keyframeCount):
+    def __init__(self, keyframeCount: int):
         super(ScaleTimeline, self).__init__(keyframeCount)
         self.LAST_FRAME_TIME = -3
         self.FRAME_SPACING = -self.LAST_FRAME_TIME

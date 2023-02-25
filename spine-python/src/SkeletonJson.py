@@ -1,16 +1,17 @@
 #! usr/bin/env python3
 import json
 import os
-import sys
-import SkeletonData
-import BoneData
-import SlotData
-import Skin
-import AttachmentLoader
-import Animation
+from .Animation import Animation
+from SkeletonData import SkeletonData
+from BoneData import BoneData
+from SlotData import SlotData
+from Skin import Skin
+from Attachment import Attachment
+from AttachmentLoader import AttachmentType, AttachmentLoader
+from Animation.Timeline import Timeline, AttachmentTimeline, CurveTimeline, ScaleTimeline, TranslateTimeline, ColorTimeline, RotateTimeline
 
 
-def readCurve(timeline, keyframeIndex, valueMap):
+def readCurve(timeline: CurveTimeline, keyframeIndex: int, valueMap: dict) -> Timeline:
     try:
         curve = valueMap['curve']
     except KeyError:
@@ -19,51 +20,53 @@ def readCurve(timeline, keyframeIndex, valueMap):
     if curve == 'stepped':
         timeline.setStepped(keyframeIndex)
     else:
-        timeline.setCurve(keyframeIndex, 
-                          float(curve[0]), 
-                          float(curve[1]),
-                          float(curve[2]),
-                          float(curve[3]))
+        timeline.setCurve(
+            keyframeIndex,
+            float(curve[0]),
+            float(curve[1]),
+            float(curve[2]),
+            float(curve[3]),
+        )
     return timeline
 
 
 class SkeletonJson:
-    def __init__(self, attachmentLoader):
-        self.attachmentLoader = attachmentLoader
-        self.scale = 1.0
-        self.flipY = False            
+    __slots__ = [
+        "attachmentLoader",
+        "scale",
+        "flipY",
+    ]
 
-    def readSkeletonDataFile(self, file, path=None):
+    def __init__(self, attachmentLoader: AttachmentLoader):
+        self.attachmentLoader: AttachmentLoader = attachmentLoader
+        self.scale: float = 1.0
+        self.flipY: bool = False
+
+    def readSkeletonDataFile(self, file: str, path: (str | None) = None):
         if path:
-           file = '{path}/{file}'.format(path=path, file=file)
+            file = '{path}/{file}'.format(path=path, file=file)
 
         file = os.path.realpath(file)
-
-        jasonPayload = None
-
         with open(file, 'r') as jsonFile:
-            jsonPayload = ''.join(jsonFile.readlines())
+            jsonPayload: str = ''.join(jsonFile.readlines())
 
         return self.readSkeletonData(jsonPayload=jsonPayload)
 
-
-    def readSkeletonData(self, jsonPayload):
+    def readSkeletonData(self, jsonPayload: str):
         try:
-            root = json.loads(jsonPayload)
+            root: dict = json.loads(jsonPayload)
         except ValueError:
             if os.path.isfile(jsonPayload):
                 print('The API has changed.  You need to load skeleton data with readSkeletonDataFile(), not readSkeletonData()')
-                sys.exit()
- 
-        skeletonData = SkeletonData.SkeletonData()
-                
-        for boneMap in root.get('bones', []):
-            boneData = BoneData.BoneData(name=boneMap['name'])
+            raise SystemExit
 
+        skeletonData: SkeletonData = SkeletonData()
+        for boneMap in root.get('bones', []):
+            boneData: BoneData = BoneData(name=boneMap['name'])
             if 'parent' in boneMap:
                 boneData.parent = skeletonData.findBone(boneMap['parent'])
                 if not boneData.parent:
-                    raise Exception('Parent bone not found: %s' % boneMap['name'])
+                    raise Exception(f"Parent bone not found: {boneMap['name']}")
 
             boneData.length = float(boneMap.get('length', 0.0)) * self.scale
             boneData.x = float(boneMap.get('x', 0.0)) * self.scale
@@ -74,58 +77,53 @@ class SkeletonJson:
             skeletonData.bones.append(boneData)
 
         for slotMap in root.get('slots', []):
-            slotName = slotMap['name']
-            boneName = slotMap['bone']
-            boneData = skeletonData.findBone(boneName)
+            slotName: str = slotMap['name']
+            boneName: str = slotMap['bone']
+            boneData: (BoneData | None) = skeletonData.findBone(boneName)
+            if BoneData is None:
+                raise Exception(f"Slot bone not found: {boneName}")
 
-            if not BoneData:
-                raise Exception('Slot bone not found: %s' % boneName)
-            slotData = SlotData.SlotData(name=slotName, boneData=boneData)
-            
+            slotData: SlotData = SlotData(name=slotName, boneData=boneData)
             if 'color' in slotMap:
                 s = slotMap['color']
-                slotData.r = int(slotMap['color'][0:2], 16)
-                slotData.g = int(slotMap['color'][2:4], 16)
-                slotData.b = int(slotMap['color'][4:6], 16)
-                slotData.a = int(slotMap['color'][6:8], 16)
+                slotData.r = int(s[0:2], 16)
+                slotData.g = int(s[2:4], 16)
+                slotData.b = int(s[4:6], 16)
+                slotData.a = int(s[6:8], 16)
 
             if 'attachment' in slotMap:
                 slotData.attachmentName = slotMap['attachment']
-            
+
             skeletonData.slots.append(slotData)
-            
-        skinsMap = root.get('skins', {})
+
+        skinsMap: dict = root.get('skins', {})
         for skinName in skinsMap.keys():
-            skin = Skin.Skin(skinName)
+            skin: Skin = Skin(skinName)
             skeletonData.skins.append(skin)
             if skinName == 'default':
                 skeletonData.defaultSkin = skin
 
-            slotMap = skinsMap[skinName]
+            slotMap: dict = skinsMap[skinName]
             for slotName in slotMap.keys():
-                slotIndex = skeletonData.findSlotIndex(slotName)
-
-                attachmentsMap = slotMap[slotName]
+                slotIndex: int = skeletonData.findSlotIndex(slotName)
+                attachmentsMap: dict = slotMap[slotName]
                 for attachmentName in attachmentsMap.keys():
-                    attachmentMap = attachmentsMap[attachmentName]
-                        
-                    type = None
-
-                    typeString = attachmentMap.get('type', 'region')
-
+                    attachmentMap: dict = attachmentsMap[attachmentName]
+                    typeString: str = attachmentMap.get('type', 'region')
                     if typeString == 'region':
-                        type = AttachmentLoader.AttachmentType.region
+                        type_ = AttachmentType.region
                     elif typeString == 'regionSequence':
-                        type = AttachmentLoader.AttachmentType.regionSequence
+                        type_ = AttachmentType.regionSequence
                     else:
-                        raise Exception('Unknown attachment type: %s (%s)' % (attachment['type'],
-                                                                                  attachmentName))
+                        raise Exception(f"Unknown attachment type: {typeString} ({attachmentName})")
 
-                    attachment = self.attachmentLoader.newAttachment(type, 
-                                                                     attachmentMap.get('name', attachmentName))
+                    attachment: Attachment = self.attachmentLoader.newAttachment(
+                        type_,
+                        attachmentMap.get('name', attachmentName)
+                    )
 
-                    if type == AttachmentLoader.AttachmentType.region or type == AttachmentLoader.AttachmentType.regionSequence:
-                        regionAttachment = attachment
+                    if type_ == AttachmentType.region or type_ == AttachmentType.regionSequence:
+                        regionAttachment: Attachment = attachment
                         regionAttachment.name = attachmentName
                         regionAttachment.x = float(attachmentMap.get('x', 0.0)) * self.scale
                         regionAttachment.y = float(attachmentMap.get('y', 0.0)) * self.scale
@@ -133,122 +131,126 @@ class SkeletonJson:
                         regionAttachment.scaleY = float(attachmentMap.get('scaleY', 1.0))
                         regionAttachment.rotation = float(attachmentMap.get('rotation', 0.0))
                         regionAttachment.width = float(attachmentMap.get('width', 32)) * self.scale
-                        regionAttachment.height = float(attachmentMap.get('height', 32)) * self.scale                        
+                        regionAttachment.height = float(attachmentMap.get('height', 32)) * self.scale
+
                     skin.addAttachment(slotIndex, attachmentName, attachment)
 
-        animations = root.get('animations', {})
+        animations: dict = root.get('animations', {})
         for animationName in animations:
-            animationMap = animations.get(animationName, {})
-            animationData = self.readAnimation(name=animationName, 
-                                               root=animationMap, 
-                                               skeletonData=skeletonData)
+            animationMap: dict = animations.get(animationName, {})
+            animationData = self.readAnimation(
+                name=animationName,
+                root=animationMap,
+                skeletonData=skeletonData,
+            )
             skeletonData.animations.append(animationData)
 
         return skeletonData
 
- 
-    def readAnimation(self, name, root, skeletonData):
-        if not skeletonData:
+    @staticmethod
+    def readAnimation(name: str, root: dict, skeletonData: (SkeletonData | None)) -> Animation:
+        if skeletonData is None:
             raise Exception('skeletonData cannot be null.')
+        else:
+            timelines: list[Timeline] = []
+            duration: float = 0.0
+            bones: dict = root.get('bones', {})
 
-        timelines =  []
-        duration = 0.0
-
-        bones = root.get('bones', {})
-
-        for boneName in bones.keys():
-            boneIndex = skeletonData.findBoneIndex(boneName)
-            if boneIndex == -1:
-                raise Exception('Bone not found: %s' % boneName)
-            
-            timelineMap = bones[boneName]
-
-            for timelineName in timelineMap.keys():
-                values = timelineMap[timelineName]
-                
-                if timelineName == 'rotate':
-                    timeline = Animation.Timeline.RotateTimeline(len(values))
-                    timeline.boneIndex = boneIndex
-                    
-                    keyframeIndex = 0
-                    for valueMap in values:
-                        time = valueMap['time']
-                        timeline.setKeyframe(keyframeIndex, time, valueMap['angle'])
-                        timeline = readCurve(timeline, keyframeIndex, valueMap)
-                        keyframeIndex += 1
-                    timelines.append(timeline)
-                    if timeline.getDuration() > duration:
-                        duration = timeline.getDuration()
-                elif timelineName == 'translate' or timelineName == 'scale':
-                    timeline = None
-                    timelineScale = 1.0
-                    if timelineName == 'scale':
-                        timeline = Animation.Timeline.ScaleTimeline(len(values))
-                    else:
-                        timeline = Animation.Timeline.TranslateTimeline(len(values))
-                        timelineScale = self.scale
-                    timeline.boneIndex = boneIndex
-                    
-                    keyframeIndex = 0
-                    for valueMap in values:
-                        time = valueMap['time']
-                        timeline.setKeyframe(keyframeIndex,
-                                             valueMap['time'],
-                                             valueMap.get('x', 0.0),
-                                             valueMap.get('y', 0.0))
-                        timeline = readCurve(timeline, keyframeIndex, valueMap)
-                        keyframeIndex += 1
-                    timelines.append(timeline)
-                    if timeline.getDuration() > duration:
-                        duration = timeline.getDuration()
+            for boneName in bones.keys():
+                boneIndex: int = skeletonData.findBoneIndex(boneName)
+                if boneIndex == -1:
+                    raise Exception('Bone not found: %s' % boneName)
                 else:
-                    raise Exception('Invalid timeline type for a bone: %s (%s)' % (timelineName, boneName))
+                    timelineMap: dict = bones[boneName]
+                    for timelineName in timelineMap.keys():
+                        values = timelineMap[timelineName]
 
+                        if timelineName == 'rotate':
+                            timeline: RotateTimeline = RotateTimeline(len(values))
+                            timeline.boneIndex = boneIndex
 
-        slots = root.get('slots', {})
+                            keyframeIndex: int = 0
+                            for valueMap in values:
+                                time: float = valueMap['time']
+                                timeline.setKeyframe(keyframeIndex, time, valueMap['angle'])
+                                timeline: (RotateTimeline | Timeline) = readCurve(timeline, keyframeIndex, valueMap)
+                                keyframeIndex += 1
 
-        for slotName in slots.keys():
-            slotIndex = skeletonData.findSlotIndex(slotName)
-            if slotIndex == -1:
-                raise Exception('Slot not found: %s' % slotName)
-            
-            timelineMap = slots[slotName]
-            for timelineName in timelineMap.keys():
-                values = timelineMap[timelineName]
-                if timelineName == 'color':
-                    timeline = Animation.Timeline.ColorTimeline(len(values))
-                    timeline.slotIndex = slotIndex
-                    
-                    keyframeIndex = 0
-                    for valueMap in values:
-                        timeline.setKeyframe(keyframeIndex, 
-                                             valueMap['time'], 
-                                             int(valueMap['color'][0:2], 16),
-                                             int(valueMap['color'][2:4], 16),
-                                             int(valueMap['color'][4:6], 16),
-                                             int(valueMap['color'][6:8], 16))
-                        timeline = readCurve(timeline, keyframeIndex, valueMap)
-                        keyframeIndex += 1
-                    timelines.append(timeline)
-                    if timeline.getDuration > duration:
-                        duration = timeline.getDuration()
+                            timelines.append(timeline)
+                            if timeline.getDuration() > duration:
+                                duration = timeline.getDuration()
 
-                elif timelineName == 'attachment':
-                    timeline = Animation.Timeline.AttachmentTimeline(len(values))
-                    timeline.slotIndex = slotIndex
-                    
-                    keyframeIndex = 0
-                    for valueMap in values:
-                        valueName = valueMap['name']
-                        timeline.setKeyframe(keyframeIndex, valueMap['time'], '' if not valueName else valueName)
-                        keyframeIndex += 1
-                    timelines.append(timeline)
-                    if timeline.getDuration > duration:
-                        duration = timeline.getDuration()
+                        elif timelineName == 'translate' or timelineName == 'scale':
+                            if timelineName == 'scale':
+                                timeline: (ScaleTimeline | Timeline) = ScaleTimeline(len(values))
+                            else:
+                                timeline: (TranslateTimeline | Timeline) = TranslateTimeline(len(values))
+                            timeline.boneIndex = boneIndex
+
+                            keyframeIndex: int = 0
+                            for valueMap in values:
+                                timeline.setKeyframe(
+                                    keyframeIndex,
+                                    valueMap['time'],
+                                    valueMap.get('x', 0.0),
+                                    valueMap.get('y', 0.0),
+                                )
+                                timeline: Timeline = readCurve(timeline, keyframeIndex, valueMap)
+                                keyframeIndex += 1
+
+                            timelines.append(timeline)
+                            if timeline.getDuration() > duration:
+                                duration = timeline.getDuration()
+                        else:
+                            raise Exception(f"Invalid timeline type for a bone: {timelineName} ({boneName})")
+
+            slots: dict = root.get('slots', {})
+            for slotName in slots.keys():
+                slotIndex: int = skeletonData.findSlotIndex(slotName)
+                if slotIndex == -1:
+                    raise Exception(f"Slot not found: {slotName}")
                 else:
-                    raise Exception('Invalid timeline type for a slot: %s (%s)' % (timelineName, slotName))
+                    timelineMap: dict = slots[slotName]
+                    for timelineName in timelineMap.keys():
+                        values = timelineMap[timelineName]
+                        if timelineName == 'color':
+                            timeline: ColorTimeline = ColorTimeline(len(values))
+                            timeline.slotIndex = slotIndex
 
-        animation = Animation.Animation(name, timelines, duration)
-        return animation
-                        
-                
+                            keyframeIndex: int = 0
+                            for valueMap in values:
+                                timeline.setKeyframe(
+                                    keyframeIndex,
+                                    valueMap['time'],
+                                    int(valueMap['color'][0:2], 16),
+                                    int(valueMap['color'][2:4], 16),
+                                    int(valueMap['color'][4:6], 16),
+                                    int(valueMap['color'][6:8], 16),
+                                )
+                                timeline: (ColorTimeline | Timeline) = readCurve(timeline, keyframeIndex, valueMap)
+                                keyframeIndex += 1
+
+                            timelines.append(timeline)
+                            timelineDuration: float = timeline.getDuration()
+                            if timelineDuration > duration:
+                                duration = timelineDuration
+
+                        elif timelineName == 'attachment':
+                            timeline: AttachmentTimeline = AttachmentTimeline(len(values))
+                            timeline.slotIndex = slotIndex
+
+                            keyframeIndex: int = 0
+                            for valueMap in values:
+                                valueName: str = valueMap['name']
+                                timeline.setKeyframe(keyframeIndex, valueMap['time'], '' if not valueName else valueName)
+                                keyframeIndex += 1
+
+                            timelines.append(timeline)
+                            timelineDuration: float = timeline.getDuration()
+                            if timelineDuration > duration:
+                                duration = timelineDuration
+                        else:
+                            raise Exception(f"Invalid timeline type for a slot: {timelineName} ({slotName})")
+
+            animation: Animation = Animation(name, timelines, duration)
+            return animation

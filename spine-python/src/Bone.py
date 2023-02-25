@@ -1,6 +1,6 @@
 #! usr/bin/env python3
 import math
-from BoneData import BoneData
+from .BoneData import BoneData
 
 
 class Bone:
@@ -44,17 +44,17 @@ class Bone:
         self.line = None
         self.circle = None
 
-    def setToBindPose(self):
+    def setToBindPose(self) -> None:
         self.x = self.data.x
         self.y = self.data.y
         self.rotation = self.data.rotation
         self.scaleX = self.data.scaleX
         self.scaleY = self.data.scaleY
 
-    def updateWorldTransform(self, flipX: bool, flipY: bool):
+    def updateWorldTransform(self, flipX: bool, flipY: bool) -> None:
         if self.parent:
-            self.worldX = self.x * self.parent.m00 + self.y * self.parent.m01 + self.parent.worldX
-            self.worldY = self.x * self.parent.m10 + self.y * self.parent.m11 + self.parent.worldY
+            self.worldX = (self.x * self.parent.m00) + (self.y * self.parent.m01) + self.parent.worldX
+            self.worldY = (self.x * self.parent.m10) + (self.y * self.parent.m11) + self.parent.worldY
             self.worldScaleX = self.parent.worldScaleX * self.scaleX
             self.worldScaleY = self.parent.worldScaleY * self.scaleY
             self.worldRotation = self.parent.worldRotation + self.rotation
