@@ -64,7 +64,7 @@ class ColorTimeline(CurveTimeline):
             percent = 0.0
         if percent > 255:
             percent = 255
-        percent = self.getCurvePercent(frameIndex / self.FRAME_SPACING - 1, percent)
+        percent = self.getCurvePercent(frameIndex // self.FRAME_SPACING - 1, percent)
 
         r = lastFrameR + (self.frames[frameIndex + self.FRAME_R] - lastFrameR) * percent
         g = lastFrameG + (self.frames[frameIndex + self.FRAME_G] - lastFrameG) * percent
