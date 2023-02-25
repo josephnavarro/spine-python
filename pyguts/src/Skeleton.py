@@ -15,10 +15,14 @@ class Skeleton(spine.Skeleton):
         "debug",
         "images",
         "clock",
+        "myfont",
     ]
 
     def __init__(self, skeletonData: spine.SkeletonData):
         super(Skeleton, self).__init__(skeletonData=skeletonData)
+        # Draw the FPS in the bottom right corner.
+        pygame.font.init()
+        self.myfont = pygame.font.SysFont(None, 24, bold=True)
         self.x = 0
         self.y = 0
         self.texture = None
@@ -26,12 +30,20 @@ class Skeleton(spine.Skeleton):
         self.images: list = []
         self.clock = None
 
-    def draw(self, screen, states):
+    def draw(
+            self, screen, states,
+            *,
+            _flip=pygame.transform.flip,
+            _rotozoom=pygame.transform.rotozoom,
+            _smoothscale=pygame.transform.smoothscale,
+            _int=int,
+            _blend=pygame.BLEND_RGBA_MULT,
+    ):
         for slot in self.drawOrder:
             attachment: (RegionAttachment | None) = slot.attachment
             if attachment is not None:
                 texture: (pygame.Surface | None) = attachment.texture.copy()
-                if texture:
+                if texture is not None:
                     x = slot.bone.worldX + slot.attachment.x * slot.bone.m00 + slot.attachment.y * slot.bone.m01
                     y = -(slot.bone.worldY + slot.attachment.x * slot.bone.m10 + slot.attachment.y * slot.bone.m11)
                     rotation = -(slot.bone.worldRotation + slot.attachment.rotation)
@@ -58,27 +70,24 @@ class Skeleton(spine.Skeleton):
                         flipY = True
                         yScale = math.fabs(yScale)
 
-                    texture.fill((slot.r, slot.g, slot.b, slot.a), None, pygame.BLEND_RGBA_MULT)
+                    texture.fill((slot.r, slot.g, slot.b, slot.a), None, _blend)
 
                     # center = texture.get_rect().center
-                    texture = pygame.transform.flip(texture, flipX, flipY)
-                    texture = pygame.transform.smoothscale(texture, (int(texture.get_width() * xScale), int(texture.get_height() * yScale)))
-                    texture = pygame.transform.rotozoom(texture, -rotation, 1)
+                    texture = _flip(texture, flipX, flipY)
+                    texture = _smoothscale(texture, (_int(texture.get_width() * xScale), _int(texture.get_height() * yScale)))
+                    texture = _rotozoom(texture, -rotation, 1)
 
                     # Center image
-                    x = x - texture.get_width() * 0.5
-                    y = y - texture.get_height() * 0.5
+                    x -= texture.get_width() * 0.5
+                    y -= texture.get_height() * 0.5
                     screen.blit(texture, (x, y))
 
         if self.debug:
             if not self.clock:
                 self.clock = pygame.time.Clock()
             self.clock.tick()
-            # Draw the FPS in the bottom right corner.
-            pygame.font.init()
-            myfont = pygame.font.SysFont(None, 24, bold=True)
-            mytext = myfont.render('FPS: %.2f' % self.clock.get_fps(), True, (255, 255, 255))
 
+            mytext = self.myfont.render('FPS: %.2f' % self.clock.get_fps(), True, (255, 255, 255))
             screen.blit(mytext, (screen.get_width() - mytext.get_width(), screen.get_height() - mytext.get_height()))
 
             for bone in self.bones:

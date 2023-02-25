@@ -30,5 +30,5 @@ class Line:
         self.texture = pygame.Surface((640, 480), pygame.SRCALPHA, 32)
         pygame.draw.rect(self.texture, (255, 255, 0, 64), (0, 0, self.texture.get_width(), self.texture.get_height()), 1)
 
-    def rotate(self):
-        return pygame.transform.rotozoom(self.texture, self.rotation, self.xScale)
+    def rotate(self, *, _rotozoom=pygame.transform.rotozoom) -> pygame.Surface:
+        return _rotozoom(self.texture, self.rotation, self.xScale)

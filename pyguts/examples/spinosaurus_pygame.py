@@ -44,7 +44,7 @@ if __name__ == '__main__':
             elif event.type == pygame.KEYDOWN:
                 if pygame.key.get_pressed()[pygame.K_ESCAPE]:
                     done = True
-        clock.tick(0)
+        clock.tick(60)
         animationTime += clock.get_time() / 1000.0
         animation.apply(skeleton=skeleton,
                         time=animationTime,
