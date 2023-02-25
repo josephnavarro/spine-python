@@ -2,6 +2,7 @@
 import math
 import pygame
 import spine
+from .RegionAttachment import RegionAttachment
 from .Circle import Circle
 from .Line import Line
 
@@ -27,9 +28,9 @@ class Skeleton(spine.Skeleton):
 
     def draw(self, screen, states):
         for slot in self.drawOrder:
-            attachment: (Attachment | None) = slot.attachment
-            if slot.attachment is not None:
-                texture: (pygame.Surface | None) = slot.attachment.texture.copy()
+            attachment: (RegionAttachment | None) = slot.attachment
+            if attachment is not None:
+                texture: (pygame.Surface | None) = attachment.texture.copy()
                 if texture:
                     x = slot.bone.worldX + slot.attachment.x * slot.bone.m00 + slot.attachment.y * slot.bone.m01
                     y = -(slot.bone.worldY + slot.attachment.x * slot.bone.m10 + slot.attachment.y * slot.bone.m11)
@@ -59,7 +60,7 @@ class Skeleton(spine.Skeleton):
 
                     texture.fill((slot.r, slot.g, slot.b, slot.a), None, pygame.BLEND_RGBA_MULT)
 
-                    center = texture.get_rect().center
+                    # center = texture.get_rect().center
                     texture = pygame.transform.flip(texture, flipX, flipY)
                     texture = pygame.transform.smoothscale(texture, (int(texture.get_width() * xScale), int(texture.get_height() * yScale)))
                     texture = pygame.transform.rotozoom(texture, -rotation, 1)

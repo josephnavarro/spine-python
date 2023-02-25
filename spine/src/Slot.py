@@ -1,6 +1,5 @@
 #! usr/bin/env python3
 from .Attachment import Attachment
-from .Skeleton import Skeleton
 from .SlotData import SlotData
 
 
@@ -16,7 +15,7 @@ class Slot:
         "attachment",
         "attachmentTime",
     ]
-    def __init__(self, slotData: SlotData, skeleton: Skeleton, bone):
+    def __init__(self, slotData: SlotData, skeleton, bone):
         if not slotData:
             raise Exception('slotData cannot be None.')
         if not skeleton:
@@ -25,7 +24,7 @@ class Slot:
             raise Exception('bone cannot be None.')
 
         self.data: SlotData = slotData
-        self.skeleton: Skeleton = skeleton
+        self.skeleton = skeleton
         self.bone = bone
         self.r: int = 255
         self.g: int = 255

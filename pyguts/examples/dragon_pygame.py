@@ -1,10 +1,7 @@
 #!/usr/bin/env python
-
-import os
-
 import pygame
-
 import pyguts as spine
+
 
 if __name__ == '__main__':
     pygame.init()
@@ -12,7 +9,7 @@ if __name__ == '__main__':
     width, height = (1024, 768)
 
     screen = pygame.display.set_mode((width, height))
-    screen.fill((0,0,0))
+    screen.fill((0, 0, 0))
     caption = 'PyGuts - A Pygame front-end based on the python-spine Runtime'
     pygame.display.set_caption(caption, 'Spine Runtime')
 
@@ -31,7 +28,7 @@ if __name__ == '__main__':
     skeleton.flipY = False
     skeleton.updateWorldTransform()
 
-    clock = pygame.time.Clock()    
+    clock = pygame.time.Clock()
     animationTime = 0.0
 
     done = False

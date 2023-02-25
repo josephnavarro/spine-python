@@ -12,7 +12,7 @@ class CurveTimeline(Timeline):
     ]
 
     def __init__(self, keyframeCount: int):
-        super(CurveTimeline, self).__init__(keyframeCount)
+        super(CurveTimeline, self).__init__()
         self.FRAME_SPACING: int = 6
         self.LINEAR: int = 0
         self.STEPPED: int = -1

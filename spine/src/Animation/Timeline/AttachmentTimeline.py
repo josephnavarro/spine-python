@@ -12,7 +12,7 @@ class AttachmentTimeline(Timeline):
     ]
 
     def __init__(self, keyframeCount: int):
-        super(AttachmentTimeline, self).__init__(keyframeCount)
+        super(AttachmentTimeline, self).__init__()
         self.LAST_FRAME_TIME = -1
         self.FRAME_SPACING = -self.LAST_FRAME_TIME
         self.frames: list[float] = [0.0] * keyframeCount

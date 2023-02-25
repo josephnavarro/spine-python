@@ -31,7 +31,7 @@ class Skeleton:
         self.a: float = 1.0
         self.time: float = 0.0
         self.bones: list[Bone | None] = []
-        self.slots: list[Slot | None] = []
+        self.slots: list = []
         self.drawOrder: list[Slot] = []
         self.flipX: bool = False
         self.flipY: bool = False
@@ -52,7 +52,7 @@ class Skeleton:
             self.bones[i] = bone
 
         slotCount = len(self.data.slots)
-        self.slots: list[Slot | None] = [None] * slotCount
+        self.slots: list = [None] * slotCount
         for i in range(slotCount):
             slotData = self.data.slots[i]
             bone = None
