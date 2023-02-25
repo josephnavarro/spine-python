@@ -51,8 +51,8 @@ class Bone:
         self.scaleX = self.data.scaleX
         self.scaleY = self.data.scaleY
 
-    def updateWorldTransform(self, flipX: bool, flipY: bool) -> None:
-        if self.parent:
+    def updateWorldTransform(self, flipX: bool, flipY: bool, *, _rad=math.radians, _cos=math.cos, _sin=math.sin) -> None:
+        if self.parent is not None:
             self.worldX = (self.x * self.parent.m00) + (self.y * self.parent.m01) + self.parent.worldX
             self.worldY = (self.x * self.parent.m10) + (self.y * self.parent.m11) + self.parent.worldY
             self.worldScaleX = self.parent.worldScaleX * self.scaleX
@@ -65,9 +65,9 @@ class Bone:
             self.worldScaleY = self.scaleY
             self.worldRotation = self.rotation
 
-        radians: float = math.radians(self.worldRotation)
-        cos: float = math.cos(radians)
-        sin: float = math.sin(radians)
+        radians: float = _rad(self.worldRotation)
+        cos: float = _cos(radians)
+        sin: float = _sin(radians)
         self.m00 = cos * self.worldScaleX
         self.m10 = sin * self.worldScaleX
         self.m01 = -sin * self.worldScaleY

@@ -41,7 +41,7 @@ class RotateTimeline(CurveTimeline):
                     amount -= 360
                 while amount < -180:
                     amount += 360
-                bone.rotation = bone.rotation + amount * alpha
+                bone.rotation += amount * alpha
                 return True
             else:
                 # Interpolate between the last frame and the current frame
@@ -68,5 +68,5 @@ class RotateTimeline(CurveTimeline):
                 while amount < -180:
                     amount += 360
 
-                bone.rotation = bone.rotation + amount * alpha
+                bone.rotation += amount * alpha
                 return True

@@ -21,12 +21,11 @@ class ScaleTimeline(TranslateTimeline):
         if time < self.frames[0]:
             return False
         else:
-
             bone = skeleton.bones[self.boneIndex]
             if time >= self.frames[self.LAST_FRAME_TIME]:
                 # Time is after last frame
-                bone.scaleX += (bone.data.scaleX - 1 + self.frames[len(self.frames) - 2] - bone.scaleX) * alpha
-                bone.scaleY += (bone.data.scaleY - 1 + self.frames[len(self.frames) - 1] - bone.scaleY) * alpha
+                bone.scaleX += (bone.data.scaleX - 1 + self.frames[-2] - bone.scaleX) * alpha
+                bone.scaleY += (bone.data.scaleY - 1 + self.frames[-1] - bone.scaleY) * alpha
                 return True
             else:
                 # Interpolate between the last frame and the current frame

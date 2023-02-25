@@ -41,12 +41,12 @@ class TranslateTimeline(CurveTimeline):
 
             if time >= self.frames[self.LAST_FRAME_TIME]:
                 # Time is after the last frame.
-                bone.x = bone.x + (bone.data.x + self.frames[self.LAST_FRAME_TIME + 1] - bone.x) * alpha
-                bone.y = bone.y + (bone.data.y + self.frames[self.LAST_FRAME_TIME + 2] - bone.y) * alpha
+                bone.x += (bone.data.x + self.frames[self.LAST_FRAME_TIME + 1] - bone.x) * alpha
+                bone.y += (bone.data.y + self.frames[self.LAST_FRAME_TIME + 2] - bone.y) * alpha
                 return True
             else:
                 # Interpolate between the last frame and the current frame
-                frameIndex = binarySearch(self.frames, time, self.FRAME_SPACING)
+                frameIndex: int = binarySearch(self.frames, time, self.FRAME_SPACING)
                 lastFrameX: float = self.frames[frameIndex - 2]
                 lastFrameY: float = self.frames[frameIndex - 1]
                 frameTime: float = self.frames[frameIndex]
@@ -58,6 +58,6 @@ class TranslateTimeline(CurveTimeline):
                     percent = 1.0
                 percent: float = self.getCurvePercent(frameIndex // self.FRAME_SPACING - 1, percent)
 
-                bone.x = bone.x + (bone.data.x + lastFrameX + (self.frames[frameIndex + self.FRAME_X] - lastFrameX) * percent - bone.x) * alpha
-                bone.y = bone.y + (bone.data.y + lastFrameY + (self.frames[frameIndex + self.FRAME_Y] - lastFrameY) * percent - bone.y) * alpha
+                bone.x += (bone.data.x + lastFrameX + (self.frames[frameIndex + self.FRAME_X] - lastFrameX) * percent - bone.x) * alpha
+                bone.y += (bone.data.y + lastFrameY + (self.frames[frameIndex + self.FRAME_Y] - lastFrameY) * percent - bone.y) * alpha
                 return True
