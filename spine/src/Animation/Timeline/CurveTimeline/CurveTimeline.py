@@ -67,18 +67,20 @@ class CurveTimeline(Timeline):
             y: float = dfy
             i: float = self.BEZIER_SEGMENTS - 2
 
-            while i != 0:
+            while True:
                 if x >= percent:
                     lastX: float = x - dfx
                     lastY: float = y - dfy
                     return lastY + (y - lastY) * (percent - lastX) / (x - lastX)
-                else:
-                    i -= 1
-                    dfx += ddfx
-                    dfy += ddfy
-                    ddfx += dddfx
-                    ddfy += dddfy
-                    x += dfx
-                    y += dfy
+                elif i == 0:
+                    break
+
+                i -= 1
+                dfx += ddfx
+                dfy += ddfy
+                ddfx += dddfx
+                ddfy += dddfy
+                x += dfx
+                y += dfy
 
             return y + (1 - y) * (percent - x) / (1 - x)  # Last point is 1,1
