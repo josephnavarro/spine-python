@@ -32,7 +32,7 @@ class Skeleton:
         self.time: float = 0.0
         self.bones: list[Bone | None] = []
         self.slots: list[Slot | None] = []
-        self.drawOrder = []
+        self.drawOrder: list[Slot] = []
         self.flipX: bool = False
         self.flipY: bool = False
 

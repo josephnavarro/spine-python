@@ -6,4 +6,4 @@ class AttachmentLoader:
     __slots__ = []
 
     def newAttachment(self, type_, name) -> Attachment:
-        pass
+        raise NotImplementedError

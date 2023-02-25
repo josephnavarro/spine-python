@@ -1,55 +1,37 @@
+#! usr/bin/env python3
 import math
-
-import spine
-
 import pygame
-
-class Circle(object):
-    def __init__(self, x, y, r):
-        super(Circle, self).__init__()
-        self.x = x
-        self.y = y
-        self.r = r
-        self.color = (0, 255, 0, 255)
-
-
-class Line(object):
-    def __init__(self, length):
-        super(Line, self).__init__()
-        self.x = 0.0
-        self.y = 0.0
-        self.x1 = 0.0
-        self.x2 = 0.0
-        self.length = length
-        self.rotation = 0.0
-        self.color = (255, 0, 0, 255)
-        self.texture = pygame.Surface((640, 480), pygame.SRCALPHA, 32)
-        pygame.draw.rect(self.texture, (255, 255, 0, 64), (0, 0, self.texture.get_width(), self.texture.get_height()), 1)
-
-
-    def rotate(self):
-        return pygame.transform.rotozoom(self.texture, self.rotation, self.xScale)
+import spine
+from .Circle import Circle
+from .Line import Line
 
 
 class Skeleton(spine.Skeleton):
-    def __init__(self, skeletonData):
+    __slots__ = [
+        "x",
+        "y",
+        "texture",
+        "debug",
+        "images",
+        "clock",
+    ]
+
+    def __init__(self, skeletonData: spine.SkeletonData):
         super(Skeleton, self).__init__(skeletonData=skeletonData)
         self.x = 0
         self.y = 0
         self.texture = None
-        self.debug = True
-        self.images = []
+        self.debug: bool = True
+        self.images: list = []
         self.clock = None
 
     def draw(self, screen, states):
-        x = 0
-        y = 0
-
         for slot in self.drawOrder:
-            if slot.attachment:
-                texture = slot.attachment.texture.copy()
+            attachment: (Attachment | None) = slot.attachment
+            if slot.attachment is not None:
+                texture: (pygame.Surface | None) = slot.attachment.texture.copy()
                 if texture:
-                    x = slot.bone.worldX + slot.attachment.x  * slot.bone.m00 + slot.attachment.y * slot.bone.m01
+                    x = slot.bone.worldX + slot.attachment.x * slot.bone.m00 + slot.attachment.y * slot.bone.m01
                     y = -(slot.bone.worldY + slot.attachment.x * slot.bone.m10 + slot.attachment.y * slot.bone.m11)
                     rotation = -(slot.bone.worldRotation + slot.attachment.rotation)
                     xScale = slot.bone.worldScaleX + slot.attachment.scaleX - 1
@@ -75,17 +57,16 @@ class Skeleton(spine.Skeleton):
                         flipY = True
                         yScale = math.fabs(yScale)
 
-                    
                     texture.fill((slot.r, slot.g, slot.b, slot.a), None, pygame.BLEND_RGBA_MULT)
 
-                    center = texture.get_rect().center                    
+                    center = texture.get_rect().center
                     texture = pygame.transform.flip(texture, flipX, flipY)
                     texture = pygame.transform.smoothscale(texture, (int(texture.get_width() * xScale), int(texture.get_height() * yScale)))
                     texture = pygame.transform.rotozoom(texture, -rotation, 1)
 
                     # Center image
-                    x = x - texture.get_width() / 2
-                    y = y - texture.get_height() / 2
+                    x = x - texture.get_width() * 0.5
+                    y = y - texture.get_height() * 0.5
                     screen.blit(texture, (x, y))
 
         if self.debug:
@@ -129,7 +110,7 @@ class Skeleton(spine.Skeleton):
                 bone.circle.x = int(bone.worldX) + self.x
                 bone.circle.y = -int(bone.worldY) + self.y
                 bone.circle.color = (0, 255, 0)
-                    
+
                 if 'top left' in bone.data.name:
                     bone.circle.color = (255, 0, 0)
                 if 'top right' in bone.data.name:
@@ -139,8 +120,10 @@ class Skeleton(spine.Skeleton):
                 if 'bottom left' in bone.data.name:
                     bone.circle.color = (199, 21, 133)
 
-                pygame.draw.circle(screen, 
-                                   bone.circle.color,
-                                   (bone.circle.x, bone.circle.y),
-                                   bone.circle.r,
-                                   0)
+                pygame.draw.circle(
+                    screen,
+                    bone.circle.color,
+                    (bone.circle.x, bone.circle.y),
+                    bone.circle.r,
+                    0,
+                )

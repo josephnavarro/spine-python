@@ -2,13 +2,13 @@
 import json
 import os
 from .Animation import Animation
-from SkeletonData import SkeletonData
-from BoneData import BoneData
-from SlotData import SlotData
-from Skin import Skin
-from Attachment import Attachment
-from AttachmentLoader import AttachmentType, AttachmentLoader
-from Animation.Timeline import Timeline, AttachmentTimeline, CurveTimeline, ScaleTimeline, TranslateTimeline, ColorTimeline, RotateTimeline
+from .SkeletonData import SkeletonData
+from .BoneData import BoneData
+from .SlotData import SlotData
+from .Skin import Skin
+from .Attachment import Attachment
+from .AttachmentLoader import AttachmentType, AttachmentLoader
+from .Animation.Timeline import Timeline, AttachmentTimeline, CurveTimeline, ScaleTimeline, TranslateTimeline, ColorTimeline, RotateTimeline
 
 
 def readCurve(timeline: CurveTimeline, keyframeIndex: int, valueMap: dict) -> Timeline:

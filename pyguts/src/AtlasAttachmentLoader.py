@@ -1,18 +1,20 @@
+#! usr/bin/env python3
 import spine
+from .RegionAttachment import RegionAttachment
 
-import RegionAttachment
 
-class AtlasAttachmentLoader(spine.AttachmentLoader.AttachmentLoader):
+class AtlasAttachmentLoader(spine.AttachmentLoader):
+    __slots__ = [
+        "atlas"
+    ]
     def __init__(self, atlas):
         self.atlas = atlas
-        
-    def newAttachment(self, type, name):
-        if type == spine.AttachmentLoader.AttachmentType.region:
-            region = self.atlas.findRegion(name)
-            if not region:
-                raise Exception("Atlas region not found: %s" % name)
-            return RegionAttachment.RegionAttachment(region)
-        else:
-            raise Exception('Unknown attachment type: %s' % type)
 
-    
+    def newAttachment(self, type_, name: str) -> RegionAttachment:
+        if type_ == spine.AttachmentType.region:
+            region = self.atlas.findRegion(name)
+            if region is None:
+                raise Exception(f"Atlas region not found: {name}")
+            return RegionAttachment(region)
+        else:
+            raise Exception(f"Unknown attachment type: {type_}")
