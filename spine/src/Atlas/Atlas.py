@@ -31,6 +31,8 @@ class Atlas:
 
         for line in text:
             value: str = line.strip().rstrip()
+            if _page is None:
+                _page = {}
             if not value:
                 _page: dict = {}
                 page = None

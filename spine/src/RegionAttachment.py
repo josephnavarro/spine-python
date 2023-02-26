@@ -8,9 +8,9 @@ class RegionAttachment(Attachment):
     __slots__ = [
         "x",
         "y",
+        "rotation",
         "scaleX",
         "scaleY",
-        "rotation",
         "width",
         "height",
         "offset",

@@ -42,15 +42,103 @@ class SkeletonJson:
         self.scale: float = 1.0
         self.flipY: bool = False
 
-    def readSkeletonDataFile(self, file: str, path: (str | None) = None):
+    def readSkeletonDataFile(self, filename: str, path: (str | None) = None):
         if path:
-            file = '{path}/{file}'.format(path=path, file=file)
+            filename: str = '{path}/{file}'.format(path=path, file=filename)
 
-        file = os.path.realpath(file)
-        with open(file, 'r') as jsonFile:
+        filename = os.path.realpath(filename)
+        with open(filename, 'r') as jsonFile:
             jsonPayload: str = ''.join(jsonFile.readlines())
 
         return self.readSkeletonData(jsonPayload=jsonPayload)
+
+    def createNewBoneData(self, boneMap: dict, skeletonData: SkeletonData) -> BoneData:
+        boneName: str = boneMap["name"]
+
+        boneData: BoneData = BoneData(name=boneName)
+
+        # "parent" (optional)
+        try:
+            boneParent: str = boneMap["parent"]
+            boneData.parent = skeletonData.findBone(boneParent)
+            if boneData.parent is None:
+                raise Exception(f"Parent bone not found: {boneName}")
+        except KeyError:
+            pass
+
+        # "length"
+        try:
+            boneLength: float = float(boneMap["length"]) * self.scale
+        except KeyError:
+            boneLength = 0.0
+        boneData.length = boneLength
+
+        # "x"
+        try:
+            boneX: float = float(boneMap["x"]) * self.scale
+        except KeyError:
+            boneX = 0.0
+        boneData.x = boneX
+
+        # "y"
+        try:
+            boneY: float = float(boneMap["y"]) * self.scale
+        except KeyError:
+            boneY = 0.0
+        boneData.y = boneY
+
+        # "rotation"
+        try:
+            boneRotation: float = float(boneMap["rotation"])
+        except KeyError:
+            boneRotation = 0.0
+        boneData.rotation = boneRotation
+
+        # "scaleX"
+        try:
+            boneScaleX: float = float(boneMap["scaleX"])
+        except KeyError:
+            boneScaleX = 1.0
+        boneData.scaleX = boneScaleX
+
+        # "scaleY"
+        try:
+            boneScaleY: float = float(boneMap["scaleY"])
+        except KeyError:
+            boneScaleY = 1.0
+        boneData.scaleY = boneScaleY
+
+        return boneData
+
+    @staticmethod
+    def createSlotData(slotMap: dict, skeletonData: SkeletonData) -> SlotData:
+        slotName: str = slotMap["name"]
+
+        # "bone"
+        boneName: str = slotMap["bone"]
+        boneData: (BoneData | None) = skeletonData.findBone(boneName)
+        if BoneData is None:
+            raise Exception(f"Slot bone not found: {boneName}")
+
+        slotData: SlotData = SlotData(name=slotName, boneData=boneData)
+
+        # "color"
+        try:
+            slotColor = slotMap["color"]
+            slotData.r = int(slotColor[0:2], 16)
+            slotData.g = int(slotColor[2:4], 16)
+            slotData.b = int(slotColor[4:6], 16)
+            slotData.a = int(slotColor[6:8], 16)
+        except KeyError:
+            pass
+
+        # "attachment"
+        try:
+            slotData.attachmentName = slotMap['attachment']
+        except KeyError:
+            pass
+
+        return slotData
 
     def readSkeletonData(self, jsonPayload: str):
         try:
@@ -61,42 +149,46 @@ class SkeletonJson:
             raise SystemExit
 
         skeletonData: SkeletonData = SkeletonData()
-        for boneMap in root.get('bones', []):
-            boneData: BoneData = BoneData(name=boneMap['name'])
-            if 'parent' in boneMap:
-                boneData.parent = skeletonData.findBone(boneMap['parent'])
-                if not boneData.parent:
-                    raise Exception(f"Parent bone not found: {boneMap['name']}")
 
-            boneData.length = float(boneMap.get('length', 0.0)) * self.scale
-            boneData.x = float(boneMap.get('x', 0.0)) * self.scale
-            boneData.y = float(boneMap.get('y', 0.0)) * self.scale
-            boneData.rotation = float(boneMap.get('rotation', 0.0))
-            boneData.scaleX = float(boneMap.get('scaleX', 1.0))
-            boneData.scaleY = float(boneMap.get('scaleY', 1.0))
-            skeletonData.bones.append(boneData)
+        # "bones"
+        try:
+            skeletonData.bones.extend([self.createNewBoneData(boneMap, skeletonData) for boneMap in root["bones"]])
+        except KeyError:
+            pass
 
-        for slotMap in root.get('slots', []):
-            slotName: str = slotMap['name']
-            boneName: str = slotMap['bone']
-            boneData: (BoneData | None) = skeletonData.findBone(boneName)
-            if BoneData is None:
-                raise Exception(f"Slot bone not found: {boneName}")
+        # "slots"
+        try:
+            skeletonData.slots.extend([self.createSlotData(slotMap, skeletonData) for slotMap in root["slots"]])
+        except KeyError:
+            pass
 
-            slotData: SlotData = SlotData(name=slotName, boneData=boneData)
-            if 'color' in slotMap:
-                s = slotMap['color']
-                slotData.r = int(s[0:2], 16)
-                slotData.g = int(s[2:4], 16)
-                slotData.b = int(s[4:6], 16)
-                slotData.a = int(s[6:8], 16)
+        # skinsMap: dict = root.get('skins', {})
 
-            if 'attachment' in slotMap:
-                slotData.attachmentName = slotMap['attachment']
+        skinsList: list[dict] = root.get("skins", [])
+        for skinData in skinsList:
+            skinName: str = skinData["name"]
+            skin: Skin = Skin(skinName)
+            skeletonData.skins.append(skin)
+            if skinName == 'default':
+                skeletonData.defaultSkin = skin
 
-            skeletonData.slots.append(slotData)
+            attachmentsMap: dict = skinData["attachments"]
+            for attachmentName in attachmentsMap.keys():
+                attachmentMap: dict = attachmentsMap[attachmentName]
+                typeString: str = attachmentMap.get('type', 'region')
+                if typeString == 'region':
+                    type_ = AttachmentType.region
+                elif typeString == 'regionSequence':
+                    type_ = AttachmentType.regionSequence
+                else:
+                    raise Exception(f"Unknown attachment type: {typeString} ({attachmentName})")
+                attachment: Attachment = self.attachmentLoader.newAttachment(
+                    type_,
+                    attachmentMap.get('name', attachmentName)
+                )
 
-        skinsMap: dict = root.get('skins', {})
+        skinsMap = {}
+        print(skinsMap)
         for skinName in skinsMap.keys():
             skin: Skin = Skin(skinName)
             skeletonData.skins.append(skin)
