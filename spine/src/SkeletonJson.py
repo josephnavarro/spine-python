@@ -168,6 +168,7 @@ class SkeletonJson:
         for skinData in skinsList:
             skinName: str = skinData["name"]
             skin: Skin = Skin(skinName)
+
             skeletonData.skins.append(skin)
             if skinName == 'default':
                 skeletonData.defaultSkin = skin
@@ -175,17 +176,21 @@ class SkeletonJson:
             attachmentsMap: dict = skinData["attachments"]
             for attachmentName in attachmentsMap.keys():
                 attachmentMap: dict = attachmentsMap[attachmentName]
-                typeString: str = attachmentMap.get('type', 'region')
+                attachmentData: dict = attachmentMap[attachmentName]
+
+                try:
+                    typeString: str = attachmentData["type"]
+                except KeyError:
+                    typeString = "region"
+
                 if typeString == 'region':
                     type_ = AttachmentType.region
                 elif typeString == 'regionSequence':
                     type_ = AttachmentType.regionSequence
                 else:
                     raise Exception(f"Unknown attachment type: {typeString} ({attachmentName})")
-                attachment: Attachment = self.attachmentLoader.newAttachment(
-                    type_,
-                    attachmentMap.get('name', attachmentName)
-                )
+                attachment: Attachment = self.attachmentLoader.newAttachment(type_, attachmentName)
+                # TODO: We're transcribing a list of skinMaps now
 
         skinsMap = {}
         print(skinsMap)
@@ -217,8 +222,21 @@ class SkeletonJson:
                     if type_ == AttachmentType.region or type_ == AttachmentType.regionSequence:
                         regionAttachment: Attachment = attachment
                         regionAttachment.name = attachmentName
-                        regionAttachment.x = float(attachmentMap.get('x', 0.0)) * self.scale
-                        regionAttachment.y = float(attachmentMap.get('y', 0.0)) * self.scale
+
+                        # "x"
+                        try:
+                            regionAttachmentX: float = float(attachmentMap["x"]) * self.scale
+                        except KeyError:
+                            regionAttachmentX = 0.0
+                        regionAttachment.x = regionAttachmentX
+
+                        # "y"
+                        try:
+                            regionAttachmentY: float = float(attachmentMap["y"]) * self.scale
+                        except KeyError:
+                            regionAttachmentY = 0.0
+                        regionAttachment.y = regionAttachmentY
+
                         regionAttachment.scaleX = float(attachmentMap.get('scaleX', 1.0))
                         regionAttachment.scaleY = float(attachmentMap.get('scaleY', 1.0))
                         regionAttachment.rotation = float(attachmentMap.get('rotation', 0.0))
