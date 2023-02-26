@@ -22,7 +22,10 @@ class Skeleton:
         "flipY",
     ]
 
-    def __init__(self, skeletonData: SkeletonData):
+    def __init__(self, skeletonData: (SkeletonData | None)):
+        if skeletonData is None:
+            raise Exception("skeletonData cannot be null")
+
         self.data: SkeletonData = skeletonData
         self.skin: (Skin | None) = None
         self.r: float = 1.0
@@ -36,14 +39,11 @@ class Skeleton:
         self.flipX: bool = False
         self.flipY: bool = False
 
-        if not self.data:
-            raise Exception('skeletonData can not be null.')
-
         boneCount: int = len(self.data.bones)
         self.bones: list[Bone | None] = [None] * boneCount
         for i in range(boneCount):
             boneData = self.data.bones[i]
-            bone = Bone(data=boneData)
+            bone = Bone(boneData)
             if boneData.parent:
                 for ii in range(boneCount):
                     if self.data.bones[ii] == boneData.parent:
@@ -65,6 +65,17 @@ class Skeleton:
             self.drawOrder.append(slot)
 
     def updateWorldTransform(self) -> None:
+        """
+        Once all of the local transforms are set up, we need the world transform
+        of each bone (for rendering, physics, etc.)
+
+        This calculation starts at the root bone, then recursively calculates all
+        child bone world transforms.
+
+        Calculated results are stored on each bone.
+
+        :return:
+        """
         for bone in self.bones:
             bone.updateWorldTransform(self.flipX, self.flipY)
 

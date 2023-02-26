@@ -10,6 +10,9 @@ class BoneData:
         "rotation",
         "scaleX",
         "scaleY",
+        "shearX",
+        "shearY",
+        "flipX",
         "flipY",
     ]
 
@@ -22,4 +25,7 @@ class BoneData:
         self.rotation: float = 0.0
         self.scaleX: float = 1.0
         self.scaleY: float = 1.0
+        self.shearX: float = 0.0
+        self.shearY: float = 0.0
+        self.flipX: bool = False
         self.flipY: bool = False
